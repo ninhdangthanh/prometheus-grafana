@@ -9,3 +9,5 @@ TS project for the next blog article about API Monitoring
 - API response time
 - Prometheus
 - Grafana dashboard
+
+https://grafana.com/grafana/dashboards/11159
