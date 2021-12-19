@@ -15,7 +15,6 @@ async function chaos(res: Response): Promise<void> {
 
   if (rand < 450) {
     const pause = Math.floor(Math.random() * 500);
-    console.log(`Wait ${pause} ms`);
     return setTimeout(pause);
   }
   res.statusCode = codes[Math.floor(Math.random() * codes.length)];

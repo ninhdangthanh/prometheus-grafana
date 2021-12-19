@@ -14,5 +14,8 @@
     "airbnb-base",
     "airbnb-typescript/base",
     "plugin:prettier/recommended"
-  ]
+  ],
+  "rules": {
+    "no-console": "off"
+  }
 }
