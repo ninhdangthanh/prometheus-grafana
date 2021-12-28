@@ -51,8 +51,8 @@ async function chaos(res: Response): Promise<void> {
     name: 'http_request_duration_ms',
     help: 'Duration of HTTP requests in ms',
     labelNames: ['method', 'route', 'code'],
-    // buckets for response time from 0.1ms to 500ms
-    buckets: [0.1, 5, 15, 50, 100, 200, 300, 400, 500],
+    // buckets for response time from 0.1ms to 1s
+    buckets: [0.1, 5, 15, 50, 100, 200, 300, 400, 500, 1000],
   });
 
   register.registerMetric(httpRequestTimer);
@@ -62,8 +62,7 @@ async function chaos(res: Response): Promise<void> {
   await tweetService.createTable();
 
   app.get('/tweets', async (req: Request, res: Response) => {
-    const end = httpRequestTimer.startTimer();
-    const route = req.route.path;
+    const start = Date.now();
     try {
       await chaos(res);
 
@@ -72,13 +71,13 @@ async function chaos(res: Response): Promise<void> {
     } catch (err: any) {
       res.send(err.message);
     } finally {
-      end({ route, code: res.statusCode, method: req.method });
+      const responseTimeInMs = Date.now() - start;
+      httpRequestTimer.labels(req.method, req.route.path, res.statusCode.toString()).observe(responseTimeInMs);
     }
   });
 
   app.post('/tweets', async (req, res) => {
-    const end = httpRequestTimer.startTimer();
-    const route = req.route.path;
+    const start = Date.now();
     try {
       const { message } = req.body;
 
@@ -89,7 +88,8 @@ async function chaos(res: Response): Promise<void> {
     } catch (err: any) {
       res.send(err.message);
     } finally {
-      end({ route, code: res.statusCode, method: req.method });
+      const responseTimeInMs = Date.now() - start;
+      httpRequestTimer.labels(req.method, req.route.path, res.statusCode.toString()).observe(responseTimeInMs);
     }
   });
 
