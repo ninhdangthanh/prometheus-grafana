@@ -1,13 +1,10 @@
 version: "3.3"
 services:
-  postgres:
-    image: postgres:latest
+  nodejs-app:
+    build:
+      context: .
     ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_USER=monitoring
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=monitoring-article
+      - "8080:8080"
   prometheus:
     image: prom/prometheus:latest
     volumes:

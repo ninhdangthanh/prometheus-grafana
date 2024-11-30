@@ -3,8 +3,6 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { AddressInfo } from 'net';
 import promClient from 'prom-client';
-import { Client } from 'pg';
-import { TweetService } from './tweet';
 
 /**
  * Randomly throw error and slow response
@@ -31,15 +29,6 @@ async function chaos(res: Response): Promise<void> {
     })
   );
 
-  const pgClient = new Client({
-    user: 'monitoring',
-    host: 'localhost',
-    database: 'monitoring-article',
-    password: 'secret',
-    port: 5432,
-  });
-  pgClient.connect();
-
   // Create a Registry to register the metrics
   const register = new promClient.Registry();
   register.setDefaultLabels({
@@ -57,17 +46,12 @@ async function chaos(res: Response): Promise<void> {
 
   register.registerMetric(httpRequestTimer);
 
-  const tweetService = new TweetService(pgClient);
-
-  await tweetService.createTable();
-
   app.get('/tweets', async (req: Request, res: Response) => {
     const start = Date.now();
     try {
       await chaos(res);
 
-      const tweets = await tweetService.listTweets();
-      res.json(tweets);
+      res.json("tweets");
     } catch (err: any) {
       res.send(err.message);
     } finally {
@@ -83,8 +67,7 @@ async function chaos(res: Response): Promise<void> {
 
       await chaos(res);
 
-      const created = await tweetService.createTweet(message);
-      res.status(201).json(created);
+      res.status(201).json("tweet create");
     } catch (err: any) {
       res.send(err.message);
     } finally {
@@ -94,8 +77,21 @@ async function chaos(res: Response): Promise<void> {
   });
 
   app.get('/metrics', async (req: Request, res: Response) => {
-    res.setHeader('Content-Type', register.contentType);
-    res.send(await register.metrics());
+    try {
+      // Log when /metrics is accessed
+      console.log('Metrics endpoint accessed');
+
+      res.setHeader('Content-Type', register.contentType);
+      const metrics = await register.metrics();
+
+      // Log the retrieved metrics (or just a success message)
+      console.log('Metrics collected successfully');
+
+      res.send(metrics);
+    } catch (err) {
+      console.error('Error collecting Prometheus metrics:', err);
+      res.status(500).send('Error collecting Prometheus metrics');
+    }
   });
 
   const server = app.listen(8080, () => {
