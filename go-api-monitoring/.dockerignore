@@ -1,0 +1,7 @@
+# Ignore everything except the necessary files
+*
+!go.mod
+!go.sum
+!main.go
+!monitoring/
+!tweet/
